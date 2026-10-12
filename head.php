@@ -21,16 +21,17 @@
 
 <body>
         <?php
-
-        session_save_path(__DIR__ . '/tmp');
+        $tmpPath = __DIR__ . '/tmp';
+        if (is_dir($tmpPath)) {
+                session_save_path($tmpPath);
+        }
         session_start();
-        if (isset($_SESSION['login']) || isset($_SESSION['IDCLIENT'])) {
+        if (isset($_SESSION['login']) || isset($_SESSION['idClient'])) {
                 $connecte = true;
         } else {
                 $connecte = false;
         }
         ?>
-
 
 
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
@@ -63,7 +64,7 @@
                                                                 <h4><i class="bi bi-box-arrow-right"></i>&nbsp;Déconnexion</h4>
                                                         </button>
                                                 </form>
-                                                
+
                                         <?php } else { ?>
                                                 <a href="index.php?page=connexionClient" class="btn">
                                                         <h4><i class="bi bi-person-circle"></i>&nbsp;Connexion</h4>
