@@ -10,29 +10,22 @@ if (isset($_POST["login"]) && isset($_POST["password"])) {
 
     try {
         $statement = $mon_pdo->prepare(
-            "SELECT IDCLIENT, NOMCLI, PRENOM, PSEUDO FROM client
-        WHERE PSEUDO = :loginRequete
-        AND MDP = :mdpRequete"
+            "SELECT IDCLIENT, NOMCLI, PRENOM, PSEUDO, MDP FROM client WHERE PSEUDO = :pseudo"
         );
-        $statement->execute([
-            'loginRequete' => $pseudo,
-            'mdpRequete' => $mdp
-        ]);
-    } catch (PDOException $monException) {
-        echo "Erreur SQL : " . $monException->getMessage();
+        $statement->execute(['pseudo' => $pseudo]);
+        $client = $statement->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        exit("Erreur SQL : " . $e->getMessage());
     }
-    $client = $statement->fetch(PDO::FETCH_ASSOC);
 
-
-    if ($client == false) {
-        // Connexion KO
-        echo("connexion KO");
-        header("location:index.php?page=connexionClient&&erreur=Problème de connexion");
-    } else {
-        // Connexion OK
-        echo("connexion ok");
+    // si MDP est en clair : $mdp === $client['MDP']
+    if ($client && password_verify($mdp, $client['MDP'])) {
         $_SESSION['IDCLIENT'] = $client['IDCLIENT'];
         $_SESSION['PRENOM'] = $client['PRENOM'];
-        header('location:index.php?page=produits');
+        header("location:index.php?page=produits");
+        exit();
+    } else {
+        header("location:index.php?page=connexionClient&erreur=Problème de connexion");
+        exit();
     }
 }
