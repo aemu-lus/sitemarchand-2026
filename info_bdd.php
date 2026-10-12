@@ -1,5 +1,5 @@
 <?php
-$nom_base='sitemarchand_e';
+$nom_base='site-marchand-e';
 $user_bdd='root';
 $mdp='';
 
