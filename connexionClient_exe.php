@@ -27,7 +27,8 @@ if (isset($_POST["login"]) && isset($_POST["password"])) {
         exit();
     } 
     } catch (PDOException $e) {
-        exit("Erreur SQL : " . $e->getMessage());
+        header("location:index.php?page=connexionClien&erreur=" . $e->getMessage());
+        exit("Erreur : " . $e->getMessage());
     }
     
     } 
