@@ -18,18 +18,14 @@ if (isset($_POST["login"]) && isset($_POST["password"])) {
         exit("Erreur SQL : " . $e->getMessage());
     }
 
-    // si MDP est en clair : $mdp === $client['MDP']
-    try{
-        if ($client && password_verify($mdp, $client['MDP'])) {
+    if ($client && password_verify($mdp, $client['MDP'])) {
         $_SESSION['IDCLIENT'] = $client['IDCLIENT'];
         $_SESSION['PRENOM'] = $client['PRENOM'];
-        header("location:index.php?page=produits");
+        header("Location: index.php?page=produits");
         exit();
-    } 
-    } catch (PDOException $e) {
-        header("location:index.php?page=connexionClien&erreur=" . $e->getMessage());
-        exit("Erreur : " . $e->getMessage());
+    } else {
+        // Échec : identifiants incorrects
+        header("Location: index.php?page=connexionClient&erreur=" . urlencode("Identifiant ou mot de passe incorrect"));
+        exit();
     }
-    
-    } 
-    
+}
