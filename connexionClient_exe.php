@@ -19,13 +19,16 @@ if (isset($_POST["login"]) && isset($_POST["password"])) {
     }
 
     // si MDP est en clair : $mdp === $client['MDP']
-    if ($client && password_verify($mdp, $client['MDP'])) {
+    try{
+        if ($client && password_verify($mdp, $client['MDP'])) {
         $_SESSION['IDCLIENT'] = $client['IDCLIENT'];
         $_SESSION['PRENOM'] = $client['PRENOM'];
         header("location:index.php?page=produits");
         exit();
-    } else {
-        header("location:index.php?page=connexionClient&erreur=Problème de connexion");
-        exit();
+    } 
+    } catch (PDOException $e) {
+        exit("Erreur SQL : " . $e->getMessage());
     }
-}
+    
+    } 
+    
