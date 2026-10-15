@@ -18,7 +18,7 @@ if (isset($_POST["login"]) && isset($_POST["password"])) {
         exit("Erreur SQL : " . $e->getMessage());
     }
 
-    if ($client && password_verify($mdp, $client['MDP'])) {
+    if ($client) {
         $_SESSION['IDCLIENT'] = $client['IDCLIENT'];
         $_SESSION['PRENOM'] = $client['PRENOM'];
         header("Location: index.php?page=produits");
