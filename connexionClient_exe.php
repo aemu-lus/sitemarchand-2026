@@ -19,7 +19,7 @@ if (isset($_POST["login"]) && isset($_POST["password"])) {
     }
 
     if ($client) {
-        $_SESSION['idClient'] = $client['idClient'];
+        $_SESSION['IDCLIENT'] = $client['IDCLIENT'];
         $_SESSION['PRENOM'] = $client['PRENOM'];
         header("Location: index.php?page=produits");
         exit();
