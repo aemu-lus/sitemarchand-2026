@@ -26,7 +26,7 @@
                 session_save_path($tmpPath);
         }
         session_start();
-        if (isset($_SESSION['login']) || isset($_SESSION['idClient'])) {
+        if (isset($_SESSION['login']) || isset($_SESSION['IDCLIENT'])) {
                 $connecte = true;
         } else {
                 $connecte = false;
