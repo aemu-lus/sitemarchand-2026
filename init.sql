@@ -1,3 +1,24 @@
+/**
+ * Script d'initialisation de la base de données `site_marchand_e`.
+ *
+ * Crée toutes les tables du site marchand, leurs clés primaires, index,
+ * auto-incréments et contraintes de clés étrangères, puis insère les
+ * jeux de données d'exemple.
+ *
+ * Correction de la partie III (vulnérabilité structurelle) :
+ *  - `client.IDCLIENT` est la clé primaire (identifiant technique) ;
+ *  - `client.PSEUDO` n'est pas une clé primaire mais reste unique grâce
+ *    à un index UNIQUE (pas de doublon de pseudo possible).
+ *
+ * Points d'attention pour la partie IV (gestion des secrets) :
+ *  - `client.MDP` et `users.mdp` contiennent des mots de passe en clair :
+ *    à remplacer par des hash (fonction hasher_mdp() de gestion_mdp.php) ;
+ *  - un hash est plus long qu'un mot de passe : prévoir une colonne assez
+ *    large (le `varchar(32)` actuel est insuffisant) ;
+ *  - les données personnelles (NOMCLI, PRENOM, MAIL, TEL) sont à chiffrer
+ *    (fonction chiffrer_donnee()), ce qui allonge aussi leur taille.
+ */
+
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -13,6 +34,7 @@ SET time_zone = "+00:00";
 -- Tables
 -- ---------------------------------------------------------
 
+/** Adresses de livraison/facturation (rue, code postal, ville). Liée aux clients par `habiter`. */
 CREATE TABLE `adresse` (
   `IDADRESSE` int(11) NOT NULL,
   `RUE` varchar(32) DEFAULT NULL,
@@ -20,6 +42,7 @@ CREATE TABLE `adresse` (
   `VILLE` varchar(32) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+/** Catégories de produits (Vêtements, Accessoires, Produits). */
 CREATE TABLE `categories` (
   `IDCATEGORIE` int(11) NOT NULL,
   `LIBELLECATEGORIE` varchar(32) DEFAULT NULL
@@ -30,6 +53,11 @@ INSERT INTO `categories` (`IDCATEGORIE`, `LIBELLECATEGORIE`) VALUES
 (2, 'Accessoires'),
 (3, 'Produits');
 
+/**
+ * Clients du site. Contient des données à caractère personnel (RGPD) :
+ * NOMCLI, PRENOM, MAIL, TEL, ainsi que le mot de passe MDP (à hacher).
+ * Clé primaire : IDCLIENT. PSEUDO est unique (voir index plus bas).
+ */
 CREATE TABLE `client` (
   `IDCLIENT` int(11) NOT NULL,
   `NOMCLI` varchar(32) NOT NULL,
@@ -44,6 +72,7 @@ INSERT INTO `client` (`IDCLIENT`, `NOMCLI`, `PRENOM`, `PSEUDO`, `MDP`, `MAIL`, `
 (2, 'DURAND', 'Emy', 'aemulus_', '1234', 'philippe-e@saint-louis29.net', '0611223344'),
 (3, 'sfg', 'sfgs', 'oui', '1234', 'philippe-e@saint-louis29.net', '0611223344');
 
+/** Commandes passées par les clients, avec leur statut et leur date. */
 CREATE TABLE `commande` (
   `IDCOMMANDE` int(11) NOT NULL,
   `IDCLIENT` int(11) NOT NULL,
@@ -55,17 +84,20 @@ INSERT INTO `commande` (`IDCOMMANDE`, `IDCLIENT`, `IDSTATUT`, `DATECOMMANDE`) VA
 (1, 2, '2', '2026-05-04'),
 (2, 2, '1', '2026-05-04');
 
+/** Lignes de commande : produits et quantités d'une commande (association commande/produit). */
 CREATE TABLE `contenir` (
   `IDCOMMANDE` int(11) NOT NULL,
   `IDPRODUIT` int(11) NOT NULL,
   `QUANTITE` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+/** Association client/adresse : adresses d'un client. */
 CREATE TABLE `habiter` (
   `IDCLIENT` int(11) NOT NULL,
   `IDADRESSE` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+/** Produits en vente : catégorie, nom, prix, stock, description et image. */
 CREATE TABLE `produit` (
   `IDPRODUIT` int(11) NOT NULL,
   `IDCATEGORIE` int(11) NOT NULL,
@@ -85,6 +117,7 @@ INSERT INTO `produit` (`IDPRODUIT`, `IDCATEGORIE`, `NOMPROD`, `PRIX`, `STOCK`, `
 (6, 2, 'Faux ongles', 1.70, 25, 'Description', 'fakesnails.jpg'),
 (7, 3, 'Eyeliner', 4.99, 15, ' ', 'liner.png');
 
+/** Statuts de commande (en cours, livraison en cours, livrés). */
 CREATE TABLE `statut` (
   `IDSTATUT` char(3) NOT NULL,
   `LIBELLESTATUT` varchar(50) DEFAULT NULL
@@ -95,6 +128,10 @@ INSERT INTO `statut` (`IDSTATUT`, `LIBELLESTATUT`) VALUES
 ('2', 'Livraison en cours'),
 ('3', 'Produits livrés');
 
+/**
+ * Utilisateurs de l'espace d'administration (login, rôle `adm`/`usr`).
+ * `mdp` (clair) est un reliquat à supprimer ; seul `mdp_hash` doit subsister.
+ */
 CREATE TABLE `users` (
   `codeUser` int(11) NOT NULL,
   `login` varchar(15) NOT NULL,

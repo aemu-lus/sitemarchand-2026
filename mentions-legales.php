@@ -1,3 +1,30 @@
+<?php
+/**
+ * Page des mentions légales du site marchand.
+ *
+ * Répond au droit à l'information prévu par le RGPD (partie II -
+ * « Respect de la réglementation ») : informe l'utilisateur sur
+ *  - l'éditeur et l'hébergeur du site (loi n°2004-575 du 21 juin 2004, LCEN) ;
+ *  - les données à caractère personnel collectées (nom, prénom, e-mail,
+ *    téléphone), leurs finalités et leurs bases légales (art. 6 RGPD) ;
+ *  - les durées de conservation, les destinataires et les transferts
+ *    hors Union européenne ;
+ *  - les droits des utilisateurs (accès, rectification, effacement,
+ *    opposition, limitation, portabilité) et le recours auprès de la CNIL ;
+ *  - les cookies, la propriété intellectuelle, les CGV, la médiation de la
+ *    consommation, la responsabilité, la disponibilité du site et le droit
+ *    applicable.
+ *
+ * Page statique : aucun traitement PHP, tout le contenu est en HTML/CSS.
+ * Les champs entre crochets (ex. [Prestataire de paiement]) sont à
+ * compléter avant la mise en production.
+ *
+ * @package    SiteMarchand
+ * @subpackage Pages
+ * @author     Emy Philippe-Durand
+ * @link       https://www.cnil.fr
+ */
+?>
 <!DOCTYPE html>
 <html lang="fr">
 
