@@ -11,6 +11,8 @@
 /var/cache/*
 /storage/logs/*
 /storage/framework/cache/*
+/.vs/
+/.vscode/
 /tmp/
 *.log
 
