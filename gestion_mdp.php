@@ -1,4 +1,4 @@
-  GNU nano 7.2                                                                  gestion_mdp.php                                                                           
+                                                                  
 <?php
     require __DIR__ . '/vendor/autoload.php';
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
