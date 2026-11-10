@@ -22,7 +22,7 @@
 }   
     function chiffrer_donnee (string $donnee, string $cle_chiffrement): string { //@param string $donnee Donnée personnelle en clair (nom, prénom,e-mail, téléphone).
                                                                                 //@param string $cle_chiffrement Clé de chiffrement chargée depuis le `.env`.
-        $donnee_chiffree = crypt($donnee, $cle_chiffrement);
+        $donnee_chiffree = openssl_encrypt($donnee, 'aes-256-cbc', $cle_chiffrement);
         return $donnee_chiffree;                                                //@return string Donnée chiffrée, prête à être enregistrée en base.
 }
 

@@ -10,6 +10,10 @@ $nomSaisi = htmlspecialchars($_POST['nom']) ?? '';
 $prenomSaisi = htmlspecialchars($_POST['prenom']) ?? '';
 $mailSaisi = htmlspecialchars($_POST['mail']) ?? '';
 $telephoneSaisi = htmlspecialchars($_POST['tel']) ?? '';
+$mdp_hash     = hasher_mdp($_POST['mdp']);
+$mail_chiffre = chiffrer_donnee($_POST['mail'], $_ENV['encryptKey']);
+$tel_chiffre  = chiffrer_donnee($_POST['tel'], $_ENV['encryptKey']);
+
 if ($mdpSaisi !== $mdpConfirmSaisi) {
     header("location:index.php?page=inscription&&erreur=Les 2 mots de passe doivent être identiques");
 }
