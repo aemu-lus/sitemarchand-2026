@@ -98,7 +98,7 @@ if ($mdp !== $mdpConfirm) {
     $erreurs[] = 'Les 2 mots de passe doivent être identiques';
 }
 if (strlen($mdp) < MDP_MIN || strlen($mdp) > MDP_MAX) {
-    $erreurs[] = 'Le mot de passe doit contenir entre ' . MDP_MIN . ' et ' . MDP_MAX . ' caractères';
+    $erreurs[] = 'Le mot de passe doit contenir minimum ' . MDP_MIN . ' caractères';
 }
 if (
     !preg_match('/[a-z]/', $mdp) || !preg_match('/[A-Z]/', $mdp) ||
