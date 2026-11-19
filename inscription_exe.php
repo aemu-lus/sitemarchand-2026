@@ -2,48 +2,33 @@
 /**
  * Traitement de l'inscription d'un client (côté serveur).
  *
- * Étapes : assainissement des données, validation (pseudo, nom, prénom,
- * mail, téléphone, mot de passe), protection des secrets (hachage du mot de
- * passe, chiffrement du mail et du téléphone) puis insertion en base avec une
- * requête préparée. En cas d'échec, redirection vers le formulaire avec un
- * message d'erreur.
- *
  * Dépendances :
  * - info_bdd.php : fournit $mon_pdo ;
+ * - gestion_mdp.php : fournit hasher_mdp() et chiffrer_donnee() ;
  * - verifierCoordonnees.php : fournit verifierCoordonnees().
- * - gestion_mdp.php : fournit hasher_mdp() et chiffrer_donnee()
  *
  * @package SiteMarchand
  */
 
 require_once __DIR__ . '/info_bdd.php';
-require_once __DIR__ . '/gestion_mdp.php'; 
+require_once __DIR__ . '/gestion_mdp.php';
 require_once __DIR__ . '/verifierCoordonnees.php';
 
 session_save_path(__DIR__ . '/tmp');
 session_start();
 
 // Limites à adapter à la taille réelle des colonnes de la table client
-
-/** @var int Longueur minimale du pseudo. */
 const PSEUDO_MIN = 3;
-/** @var int Longueur maximale du pseudo. */
 const PSEUDO_MAX = 30;
-/** @var int Longueur maximale du nom et du prénom. */
-const NOM_MAX = 50;
-/** @var int Longueur minimale du mot de passe. */
-const MDP_MIN = 12;
-/** @var int Longueur maximale du mot de passe (limite de bcrypt). */
-const MDP_MAX = 72;
+const NOM_MAX    = 50;
+const MDP_MIN    = 12;
+const MDP_MAX    = 72;
 
 /**
  * Redirige vers le formulaire d'inscription avec un message d'erreur,
  * puis arrête le script.
  *
- * Le exit est indispensable : sans lui, le script continuerait après
- * header() et l'insertion pourrait quand même avoir lieu.
- *
- * @param string $message Message d'erreur à afficher à l'utilisateur.
+ * @param string $message Message d'erreur à afficher.
  *
  * @return void
  */
@@ -52,21 +37,21 @@ function redirigerErreur(string $message): void
     header('Location: index.php?page=inscription&erreur=' . urlencode($message));
     exit;
 }
+
 /**
  * Indique si un pseudo est déjà utilisé par un client.
  *
  * @param PDO    $pdo    Connexion à la base de données.
- * @param string $pseudo Pseudo à tester (déjà nettoyé avec trim()).
+ * @param string $pseudo Pseudo à tester.
  *
- * @return bool true si le pseudo existe déjà, false s'il est disponible.
+ * @return bool true si le pseudo existe déjà.
  *
- * @throws PDOException En cas d'erreur SQL (à gérer par l'appelant).
+ * @throws PDOException En cas d'erreur SQL.
  */
 function pseudoDejaUtilise(PDO $pdo, string $pseudo): bool
 {
     $statement = $pdo->prepare('SELECT COUNT(*) FROM client WHERE PSEUDO = :pseudo');
     $statement->execute([':pseudo' => $pseudo]);
-
     return (int) $statement->fetchColumn() > 0;
 }
 
@@ -75,14 +60,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirigerErreur("Le formulaire n'a pas été soumis correctement");
 }
 
-// 2. Récupération et assainissement (trim, pas d'htmlspecialchars avant la BDD :
-//    l'échappement HTML se fait à l'affichage, pas au stockage)
+// 2. Récupération des données (trim, sans htmlspecialchars avant la BDD)
 $pseudo     = trim($_POST['pseudo'] ?? '');
 $nom        = trim($_POST['nom'] ?? '');
 $prenom     = trim($_POST['prenom'] ?? '');
 $mail       = trim($_POST['mail'] ?? '');
 $tel        = trim($_POST['tel'] ?? '');
-$mdp        = $_POST['password'] ?? '';    // jamais modifié ni trimé
+$mdp        = $_POST['password'] ?? '';
 $mdpConfirm = $_POST['mdpConfirm'] ?? '';
 
 // 3. Vérifications : on accumule toutes les erreurs
@@ -93,10 +77,21 @@ if ($pseudo === '' || $nom === '' || $prenom === '' || $mdp === '') {
     $erreurs[] = 'Veuillez renseigner tous les champs obligatoires';
 }
 
-// Pseudo
-if ($pseudo !== '' && !preg_match('/^[A-Za-z0-9_.-]{' . PSEUDO_MIN . ',' . PSEUDO_MAX . '}$/', $pseudo)) {
-    $erreurs[] = 'Le pseudo doit contenir au moins ' . PSEUDO_MIN . 
-        ' caractères (lettres, chiffres, . _ -)';
+// Pseudo : format, puis disponibilité (uniquement si le format est valide)
+if ($pseudo !== '') {
+    if (!preg_match('/^[A-Za-z0-9_.-]{' . PSEUDO_MIN . ',' . PSEUDO_MAX . '}$/', $pseudo)) {
+        $erreurs[] = 'Le pseudo doit contenir minimum ' . PSEUDO_MIN .
+            ' caractères (lettres, chiffres, . _ -)';
+    } else {
+        try {
+            if (pseudoDejaUtilise($mon_pdo, $pseudo)) {
+                $erreurs[] = 'Ce pseudo est déjà utilisé';
+            }
+        } catch (PDOException $e) {
+            error_log('inscription_exe.php : ' . $e->getMessage());
+            $erreurs[] = "Un problème est survenu lors de l'inscription";
+        }
+    }
 }
 
 // Nom et prénom
@@ -129,23 +124,9 @@ if ($pseudo !== '' && stripos($mdp, $pseudo) !== false) {
     $erreurs[] = 'Le mot de passe ne doit pas contenir le pseudo';
 }
 
+// Toutes les vérifications sont faites AVANT cette redirection
 if (!empty($erreurs)) {
     redirigerErreur(implode(' / ', $erreurs));
-}
-// Pseudo
-if ($pseudo !== '' && !preg_match('/^[A-Za-z0-9_.-]{' . PSEUDO_MIN . ',' . PSEUDO_MAX . '}$/', $pseudo)) {
-    $erreurs[] = 'Le pseudo doit contenir entre ' . PSEUDO_MIN . ' et ' . PSEUDO_MAX .
-        ' caractères (lettres, chiffres, . _ -)';
-} elseif ($pseudo !== '') {
-    // Format valide : on vérifie que le pseudo n'est pas déjà pris
-    try {
-        if (pseudoDejaUtilise($mon_pdo, $pseudo)) {
-            $erreurs[] = 'Ce pseudo est déjà utilisé';
-        }
-    } catch (PDOException $e) {
-        error_log('inscription_exe.php : ' . $e->getMessage());
-        $erreurs[] = "Un problème est survenu lors de l'inscription";
-    }
 }
 
 // 4. Protection des secrets : hachage du mdp, chiffrement du mail et du téléphone
@@ -172,9 +153,8 @@ try {
         ':telephone' => $telChiffre,
     ]);
 } catch (PDOException $e) {
-    // Le détail de l'erreur va dans les logs, jamais à l'écran
     error_log('inscription_exe.php : ' . $e->getMessage());
-    if ($e->getCode() === '23000') { // contrainte d'unicité (pseudo déjà pris)
+    if ($e->getCode() === '23000') { // filet de sécurité : pseudo déjà pris
         redirigerErreur('Ce pseudo est déjà utilisé');
     }
     redirigerErreur("Un problème est survenu lors de l'inscription");
