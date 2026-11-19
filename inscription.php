@@ -41,11 +41,11 @@ if (isset($_GET["info"])) {
         </div>
         <div class="mb-3">
             <label for="text" class="form-label">Email :</label>
-            <input type="text" class="form-control" id="mail" name="mail">
+            <input type="text" required class="form-control" id="mail" name="mail">
         </div>
         <div class="mb-3">
             <label for="text" class="form-label">Téléphone :</label>
-            <input type="text" class="form-control" id="Tel" name="tel">
+            <input type="text" required  class="form-control" id="Tel" name="tel">
         </div>
         <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill" onclick="verifierSaisie()">Valider</button>
     </div>
