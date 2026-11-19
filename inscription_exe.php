@@ -152,6 +152,11 @@ try {
         ':mail'      => $mailChiffre,
         ':telephone' => $telChiffre,
     ]);
+    if ($resultat) {
+    header('Location: index.php?page=connexionClient&info=' . urlencode('Inscription réussie. Veuillez vous authentifier'));
+    exit;
+}
+redirigerErreur("Un problème est survenu lors de l'inscription");
 } catch (PDOException $e) {
     error_log('inscription_exe.php : ' . $e->getMessage());
     if ($e->getCode() === '23000') { // filet de sécurité : pseudo déjà pris
@@ -160,8 +165,3 @@ try {
     redirigerErreur("Un problème est survenu lors de l'inscription");
 }
 
-if ($resultat) {
-    header('Location: index.php?page=connexionClient&info=' . urlencode('Inscription réussie. Veuillez vous authentifier'));
-    exit;
-}
-redirigerErreur("Un problème est survenu lors de l'inscription");
