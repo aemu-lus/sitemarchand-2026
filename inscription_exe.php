@@ -27,7 +27,7 @@ $tel_chiffre  = chiffrer_donnee($telephoneSaisi, $_ENV['chiffreKey']);
 
 $resultat = false;
 try {
-    $requeteInsertion = "INSERT INTO client (NOMCLI, PRENOM, PSEUDO, mdp_hash, MAIL, TEL)
+    $requeteInsertion = "INSERT INTO client (NOMCLI, PRENOM, PSEUDO, MDP, MAIL, TEL)
         VALUES (:nom, :prenom, :pseudo, :mdp, :mail, :telephone)";
     $statement = $mon_pdo->prepare($requeteInsertion);
     $resultat = $statement->execute([
