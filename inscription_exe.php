@@ -39,7 +39,8 @@ try {
         ':telephone' => $tel_chiffre
     ]);
 } catch (PDOException $monException) {
-    error_log("Erreur SQL : " . $monException->getMessage());
+    echo "Erreur SQL : " . $monException->getMessage();   // DEBUG : à retirer ensuite
+    exit;
 }
 
 if ($resultat) {
