@@ -9,13 +9,15 @@
  * message d'erreur.
  *
  * Dépendances :
- * - info_bdd.php : fournit $mon_pdo, hasher_mdp() et chiffrer_donnee() ;
+ * - info_bdd.php : fournit $mon_pdo ;
  * - verifierCoordonnees.php : fournit verifierCoordonnees().
+ * - gestion_mdp.php : fournit hasher_mdp() et chiffrer_donnee()
  *
  * @package SiteMarchand
  */
 
 require_once __DIR__ . '/info_bdd.php';
+require_once __DIR__ . '/gestion_mdp.php'; 
 require_once __DIR__ . '/verifierCoordonnees.php';
 
 session_save_path(__DIR__ . '/tmp');
@@ -76,8 +78,8 @@ if ($pseudo === '' || $nom === '' || $prenom === '' || $mdp === '') {
 
 // Pseudo
 if ($pseudo !== '' && !preg_match('/^[A-Za-z0-9_.-]{' . PSEUDO_MIN . ',' . PSEUDO_MAX . '}$/', $pseudo)) {
-    $erreurs[] = 'Le pseudo doit contenir entre ' . PSEUDO_MIN . ' et ' . PSEUDO_MAX
-        . ' caractères (lettres, chiffres, . _ -)';
+    $erreurs[] = 'Le pseudo doit contenir au moins ' . PSEUDO_MIN . 
+        ' caractères (lettres, chiffres, . _ -)';
 }
 
 // Nom et prénom
