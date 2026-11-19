@@ -1,3 +1,4 @@
+
 <?php
 /**
  * Gestion des secrets du site marchand.

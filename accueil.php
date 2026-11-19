@@ -25,6 +25,7 @@
     <h5 class="m-5 text-center p-3" style="background-color: rgb(169, 140, 197);">Bienvenue sur l'accueil</h5>
 
 
+
     <!-- Bloc météo : rempli dynamiquement par fetchMeteo() -->
     <div class="row">
         <div class="col">
