@@ -118,8 +118,8 @@ if (!empty($erreurs)) {
 
 // 4. Protection des secrets : hachage du mdp, chiffrement du mail et du téléphone
 $mdpHash     = hasher_mdp($mdp);
-$mailChiffre = chiffrer_donnee($mail, $_ENV['encryptKey']);
-$telChiffre  = chiffrer_donnee($coordonnees['tel'], $_ENV['encryptKey']);
+$mailChiffre = chiffrer_donnee($mail, $_ENV['chiffreKey']);
+$telChiffre  = chiffrer_donnee($coordonnees['tel'], $_ENV['chiffreKey']);
 
 if ($mdpHash === false || $mailChiffre === false || $telChiffre === false) {
     error_log('inscription_exe.php : échec du hachage ou du chiffrement');
