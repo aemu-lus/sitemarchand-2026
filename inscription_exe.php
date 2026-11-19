@@ -52,6 +52,23 @@ function redirigerErreur(string $message): void
     header('Location: index.php?page=inscription&erreur=' . urlencode($message));
     exit;
 }
+/**
+ * Indique si un pseudo est déjà utilisé par un client.
+ *
+ * @param PDO    $pdo    Connexion à la base de données.
+ * @param string $pseudo Pseudo à tester (déjà nettoyé avec trim()).
+ *
+ * @return bool true si le pseudo existe déjà, false s'il est disponible.
+ *
+ * @throws PDOException En cas d'erreur SQL (à gérer par l'appelant).
+ */
+function pseudoDejaUtilise(PDO $pdo, string $pseudo): bool
+{
+    $statement = $pdo->prepare('SELECT COUNT(*) FROM client WHERE PSEUDO = :pseudo');
+    $statement->execute([':pseudo' => $pseudo]);
+
+    return (int) $statement->fetchColumn() > 0;
+}
 
 // 1. Accepter uniquement une soumission de formulaire
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -114,6 +131,21 @@ if ($pseudo !== '' && stripos($mdp, $pseudo) !== false) {
 
 if (!empty($erreurs)) {
     redirigerErreur(implode(' / ', $erreurs));
+}
+// Pseudo
+if ($pseudo !== '' && !preg_match('/^[A-Za-z0-9_.-]{' . PSEUDO_MIN . ',' . PSEUDO_MAX . '}$/', $pseudo)) {
+    $erreurs[] = 'Le pseudo doit contenir entre ' . PSEUDO_MIN . ' et ' . PSEUDO_MAX .
+        ' caractères (lettres, chiffres, . _ -)';
+} elseif ($pseudo !== '') {
+    // Format valide : on vérifie que le pseudo n'est pas déjà pris
+    try {
+        if (pseudoDejaUtilise($mon_pdo, $pseudo)) {
+            $erreurs[] = 'Ce pseudo est déjà utilisé';
+        }
+    } catch (PDOException $e) {
+        error_log('inscription_exe.php : ' . $e->getMessage());
+        $erreurs[] = "Un problème est survenu lors de l'inscription";
+    }
 }
 
 // 4. Protection des secrets : hachage du mdp, chiffrement du mail et du téléphone
