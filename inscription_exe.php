@@ -1,5 +1,6 @@
 <?php
 require("info_bdd.php");
+require("gestion_mdp.php");
 session_save_path(__DIR__ . '/tmp');
 session_start();
 
@@ -10,9 +11,9 @@ $nomSaisi = htmlspecialchars($_POST['nom']) ?? '';
 $prenomSaisi = htmlspecialchars($_POST['prenom']) ?? '';
 $mailSaisi = htmlspecialchars($_POST['mail']) ?? '';
 $telephoneSaisi = htmlspecialchars($_POST['tel']) ?? '';
-$mdp_hash     = hasher_mdp($_POST['mdp']);
-$mail_chiffre = chiffrer_donnee($_POST['mail'], $_ENV['encryptKey']);
-$tel_chiffre  = chiffrer_donnee($_POST['tel'], $_ENV['encryptKey']);
+$mdp_hash     = hasher_mdp($mdpSaisi);
+$mail_chiffre = chiffrer_donnee($mailSaisi, $_ENV['encryptKey']);
+$tel_chiffre  = chiffrer_donnee($telephoneSaisi, $_ENV['encryptKey']);
 
 if ($mdpSaisi !== $mdpConfirmSaisi) {
     header("location:index.php?page=inscription&&erreur=Les 2 mots de passe doivent être identiques");
@@ -23,20 +24,19 @@ if (
 ) {
     header("location:index.php?page=inscription&&erreur=Veuillez renseigner tous les champs obligatoires");
 }
-require "./info_bdd.php";
 $resultat = false;
 // requête préparée
 try {
-    $requeteInsertion = "INSERT INTO client (NOMCLI, PRENOM, PSEUDO, MDP, MAIL, TEL)
+    $requeteInsertion = "INSERT INTO client (NOMCLI, PRENOM, PSEUDO, MDP, mdp_hash MAIL, TEL)
     VALUES (:nom, :prenom, :pseudo, :mdp, :mail, :telephone)";
     $statement = $mon_pdo->prepare($requeteInsertion);
     $resultat = $statement->execute([
         ':nom' => $nomSaisi,
         ':prenom' => $prenomSaisi,
         ':pseudo' => $loginSaisi,
-        ':mdp' => $mdpSaisi,
-        ':mail' => $mailSaisi,
-        ':telephone' => $telephoneSaisi
+        ':mdp' => $mdp_hash,
+        ':mail' => $mail_chiffre,
+        ':telephone' => $tel_chiffre
     ]);
 } catch (PDOException $monException) {
     echo "Erreur SQL : " . $monException->getMessage();
