@@ -55,7 +55,7 @@ if (
 
 try {
     $statement = $mon_pdo->prepare(
-        'SELECT login, mdp, nom, role FROM users WHERE login = :login'
+        'SELECT login, mdp_hash, nom, role FROM users WHERE login = :login'
     );
     $statement->execute([':login' => $login]);
     $user = $statement->fetch(PDO::FETCH_ASSOC);
@@ -64,7 +64,7 @@ try {
     redirigerEchec('Un problème est survenu lors de la connexion');
 }
 
-if ($user && verifier_mdp($mdp, $user['mdp'])) {
+if ($user && verifier_mdp($mdp, $user['mdp_hash'])) {
     session_regenerate_id(true); 
     $_SESSION['login'] = $user['login'];
     $_SESSION['role']  = $user['role'];
@@ -73,4 +73,5 @@ if ($user && verifier_mdp($mdp, $user['mdp'])) {
     exit;
 }
 
+// Échec : login inconnu ou mauvais mot de passe, même message dans les deux cas
 redirigerEchec();
