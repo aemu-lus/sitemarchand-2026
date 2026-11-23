@@ -27,6 +27,7 @@
 <<<<<<< HEAD
 =======
 
+
     <!-- Bloc météo : rempli dynamiquement par fetchMeteo() -->
 >>>>>>> 7ea465e4537cd0e76758a69146d1aa30c9c8a20b
     <div class="row">
