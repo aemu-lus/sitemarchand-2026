@@ -15,6 +15,7 @@
 /.vscode/
 /tmp/
 *.log
+php.ini
 
 # Tests et couverture
 /coverage/
