@@ -74,4 +74,10 @@ if ($user && verifier_mdp($mdp, $user['mdp_hash'])) {
 }
 
 // Échec : login inconnu ou mauvais mot de passe, même message dans les deux cas
-redirigerEchec();
+// TEMPORAIRE : à supprimer après le test
+$hash = $user['mdp_hash'] ?? '';
+redirigerEchec(
+    'user=' . ($user ? 'oui' : 'non')
+    . ' | hash=' . substr($hash, 0, 4) . ' (' . strlen($hash) . ' car.)'
+    . ' | hashKey=' . (isset($_ENV['hashKey']) ? 'défini' : 'ABSENT')
+);
