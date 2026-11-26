@@ -4,7 +4,11 @@
  *
  * Étapes : validation des données saisies, récupération du client par son
  * pseudo (requête préparée), vérification du mot de passe par rapport au hash
- * stocké en base, puis ouverture de la session.
+ * stocké en base, journalisation de chaque cas avec error_log(), puis
+ * ouverture de la session.
+ *
+ * Les lignes du journal sont écrites dans le fichier défini par la directive
+ * error_log du php.ini (PHP ajoute lui-même la date et l'heure en début de ligne).
  *
  * Dépendances :
  * - info_bdd.php : fournit $mon_pdo ;
@@ -39,18 +43,32 @@ function redirigerEchec(string $message = 'Identifiant ou mot de passe incorrect
     exit;
 }
 
+// Adresse IP du visiteur, écrite dans chaque ligne du journal
+$ip = $_SERVER['REMOTE_ADDR'] ?? '-';
+
+// L'écriture dans le journal se fait AVANT la redirection : redirigerEchec()
+// contient un exit, donc tout ce qui est écrit après n'est jamais exécuté.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    error_log('AUTH | WARNING | Accès à la connexion sans formulaire POST | ip=' . $ip . ' | utilisateur=-');
     redirigerEchec();
 }
 
 $pseudo = trim($_POST['login'] ?? '');
-$mdp    = $_POST['password'] ?? '';
+$mdp    = $_POST['password'] ?? '';   // jamais modifié, et jamais écrit dans le journal
+
+// Pseudo nettoyé pour le journal : un visiteur ne peut pas y glisser de faux
+// retours à la ligne ni de séparateur. Les caractères interdits deviennent « ? ».
+$pseudoLog = preg_replace('/[^A-Za-z0-9_.-]/', '?', substr($pseudo, 0, PSEUDO_MAX));
+if ($pseudoLog === '') {
+    $pseudoLog = '-';
+}
 
 if (
     $pseudo === '' || $mdp === '' ||
     !preg_match('/^[A-Za-z0-9_.-]{' . PSEUDO_MIN . ',' . PSEUDO_MAX . '}$/', $pseudo) ||
     strlen($mdp) > MDP_MAX
 ) {
+    error_log('AUTH | WARNING | Echec de connexion : saisie invalide | ip=' . $ip . ' | utilisateur=' . $pseudoLog);
     redirigerEchec();
 }
 
@@ -61,16 +79,29 @@ try {
     $statement->execute([':pseudo' => $pseudo]);
     $client = $statement->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    error_log('connexionClient_exe.php : ' . $e->getMessage());
-    redirigerEchec("Un problème est survenu lors de la connexion");
+    $erreurSql = str_replace(["\r", "\n"], ' ', $e->getMessage());
+    error_log('AUTH | ERROR | Erreur base de données lors de la connexion : ' . $erreurSql
+        . ' | ip=' . $ip . ' | utilisateur=' . $pseudoLog);
+    redirigerEchec('Un problème est survenu lors de la connexion');
 }
 
-if ($client && verifier_mdp($mdp, $client['MDP'])) {
-    session_regenerate_id(true); 
-    $_SESSION['IDCLIENT'] = $client['IDCLIENT'];
-    $_SESSION['PRENOM']   = $client['PRENOM'];
-
-    header('Location: index.php?page=produits');
-    exit;
+// Le journal est interne : il peut être précis, alors que le message affiché
+// à l'utilisateur reste le même dans tous les cas d'échec.
+if (!$client) {
+    error_log('AUTH | WARNING | Echec de connexion : pseudo inconnu | ip=' . $ip . ' | utilisateur=' . $pseudoLog);
+    redirigerEchec();
 }
-redirigerEchec();
+
+if (!verifier_mdp($mdp, $client['MDP'])) {
+    error_log('AUTH | WARNING | Echec de connexion : mot de passe incorrect | ip=' . $ip . ' | utilisateur=' . $pseudoLog);
+    redirigerEchec();
+}
+
+session_regenerate_id(true); // protège contre le vol de session
+$_SESSION['IDCLIENT'] = $client['IDCLIENT'];
+$_SESSION['PRENOM']   = $client['PRENOM'];
+
+error_log('AUTH | INFO | Connexion réussie (IDCLIENT=' . $client['IDCLIENT'] . ') | ip=' . $ip . ' | utilisateur=' . $pseudoLog);
+
+header('Location: index.php?page=produits');
+exit;
