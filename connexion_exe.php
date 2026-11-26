@@ -73,5 +73,4 @@ if ($user && verifier_mdp($mdp, $user['mdp_hash'])) {
     exit;
 }
 
-// Échec : login inconnu ou mauvais mot de passe, même message dans les deux cas
 redirigerEchec();
