@@ -72,7 +72,4 @@ if ($user && verifier_mdp($mdp, $user['mdp_hash'])) {
     header('Location: index.php?page=admin');
     exit;
 }
-
-
 redirigerEchec();
-
